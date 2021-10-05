@@ -11,8 +11,10 @@
     "format:ci": "prettier --check ."
   },
   "dependencies": {
+    "@asseinfo/react-kanban": "^2.2.0",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
+    "@lourenci/react-kanban": "^2.1.0",
     "ag-grid-community": "^26.0.0",
     "ag-grid-react": "^26.0.0",
     "antd": "^4.16.13",

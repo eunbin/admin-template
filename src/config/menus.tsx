@@ -20,8 +20,8 @@ export const menus: any[] = [
         icon: <DashboardOutlined />,
       },
       {
-        path: '/projects/kanban',
-        name: 'Kanban',
+        path: '/projects/process',
+        name: 'Process',
         icon: <ProjectOutlined />,
       },
       {

@@ -1,6 +1,5 @@
 // https://github.com/SolidZORO/next-plugin-antd-less#how-to-import-global-less-style-eg-stylesless
 require('styles/App.less');
-import 'styles/data-grid.css';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
 import type { AppProps } from 'next/app';
@@ -8,6 +7,7 @@ import ModalProvider from 'contexts/ModalProvider';
 import DrawerProvider from 'contexts/DrawerProvider';
 import AppProvider from 'contexts/AppProvider';
 import Head from 'next/head';
+import 'styles/react-kanban.css';
 
 const queryClient = new QueryClient();
 

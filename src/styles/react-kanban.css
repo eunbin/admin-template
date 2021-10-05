@@ -1,0 +1,12 @@
+.react-kanban-column {
+    background: gold;
+}
+
+@keyframes blink-effect {
+    50% {
+        opacity: 0;
+    }
+}
+.blink {
+    animation: blink-effect 1s step-end infinite;
+}

@@ -1,4 +1,4 @@
-type ApiService = 'mockApi' | 'agGridApi';
+type ApiService = 'mockApi' | 'agGridApi' | 'misApi';
 
 interface ApiServerConfig {
   url: string;
@@ -15,6 +15,9 @@ const appConfig: AppConfigLocal = {
     },
     agGridApi: {
       url: 'https://www.ag-grid.com',
+    },
+    misApi: {
+      url: 'http://133.186.201.86/mis',
     },
   },
 };
