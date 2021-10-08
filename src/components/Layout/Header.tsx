@@ -134,29 +134,23 @@ function Header() {
             </div>
           }
         >
-          <Badge
-            count={notifications.length}
-            dot
-            offset={[-10, 10]}
-            css={css`
-              width: 48px;
-              height: 48px;
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              border-radius: 24px;
-              cursor: pointer;
-              &:hover {
-                svg {
-                  color: #fff;
-                }
-              }
-            `}
-          >
+          <Badge count={notifications.length} dot offset={[-10, 10]}>
             <BellOutlined
               css={css`
+                width: 48px;
+                height: 48px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                border-radius: 24px;
+                cursor: pointer;
                 color: #b2b0c7;
                 font-size: 22px;
+                &:hover {
+                  svg {
+                    color: #fff;
+                  }
+                }
               `}
             />
           </Badge>

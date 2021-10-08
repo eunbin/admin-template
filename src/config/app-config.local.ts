@@ -4,8 +4,13 @@ interface ApiServerConfig {
   url: string;
 }
 
+interface SocketServer {
+  url: string;
+}
+
 interface AppConfigLocal {
   services: { [key in ApiService]: ApiServerConfig };
+  socketServer: SocketServer;
 }
 
 const appConfig: AppConfigLocal = {
@@ -17,8 +22,11 @@ const appConfig: AppConfigLocal = {
       url: 'https://www.ag-grid.com',
     },
     misApi: {
-      url: 'http://133.186.201.86/mis',
+      url: 'http://47j1hszywm2yvn1uem.toastgslb.com/mis',
     },
+  },
+  socketServer: {
+    url: 'ws://47j1hszywm2yvn1uem.toastgslb.com',
   },
 };
 

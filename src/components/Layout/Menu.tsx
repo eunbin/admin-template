@@ -20,7 +20,6 @@ function Menu() {
     [defaultMenu]
   );
 
-  console.log('>>>>>>>>>>>>', menuOpenKeys);
   return (
     <AntdMenu
       mode="inline"

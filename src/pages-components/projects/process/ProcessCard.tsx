@@ -1,33 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Button, Card, Space } from 'antd';
+import { Button, Card, Divider, Space, Typography } from 'antd';
 import { ProcessStatItem } from 'api/misApi/process';
 import { css } from '@emotion/react';
 import dayjs from 'dayjs';
 import styled from '@emotion/styled';
 
-const cardStyle = css`
-  width: 300px;
-  // height: "100px";
-  // background: color || '#fff';
-  border: 1px solid #999;
-  margin-bottom: 10px;
-  .ant-card-body {
-    padding: 0;
-  }
-`;
-
-const CardHeader = styled.p(css`
-  padding: 10px;
-  margin: 0;
-  border-bottom: 1px solid #333;
-  text-align: center;
-  font-weight: bold;
-`);
-
 const CardRow = styled.p(css`
-  padding: 10px;
-  margin: 0;
-  border-bottom: 1px solid #333;
+  padding: 0 10px;
 `);
 
 const BLINK_DURATION = 5000;
@@ -69,25 +48,41 @@ function ProcessCard({
   );
 
   return (
-    <Card className={className} css={cardStyle}>
-      <CardHeader>{`${patient_name} (${client_name})`}</CardHeader>
+    <Card
+      title={`${patient_name} (${client_name})`}
+      className={className}
+      headStyle={{ textAlign: 'center' }}
+      bodyStyle={{ padding: 0, width: 300 }}
+      css={css`
+        margin-bottom: 10px;
+        .ant-divider-horizontal {
+          margin: 0 0 10px 0;
+        }
+      `}
+      hoverable
+    >
+      <Divider />
       <CardRow>{client_note}</CardRow>
+      <Divider />
       <CardRow>
         작업 접수시간 : {dayjs(req_time).format('YYYY.MM.DD HH:mm:ss')}
       </CardRow>
+      <Divider />
       <CardRow>
         공장 시작시간 : {dayjs(start_time).format('YYYY.MM.DD HH:mm:ss')}
       </CardRow>
+      <Divider />
       <CardRow>
         마감시간 : {dayjs(deadline).format('YYYY.MM.DD')}
         {` (D${diff > 0 ? '+' : diff === 0 ? '-' : ''}${diff})`}
       </CardRow>
+      <Divider />
       <Space
         align={'center'}
         css={css`
           width: 100%;
           justify-content: center;
-          padding: 6px 0;
+          padding: 10px 0;
         `}
       >
         <Button onClick={onDetailClick}>상세보기</Button>
