@@ -9,7 +9,7 @@ import {
   Table,
 } from 'antd';
 import React, { useMemo } from 'react';
-import { ProcessStatItem } from 'api/misApi/process';
+import { ProcessSnapshotItem } from 'api/misApi/process';
 import dayjs from 'dayjs';
 import { User } from 'api/mockApi/user';
 import Link from 'next/link';
@@ -17,9 +17,9 @@ import TextArea from 'antd/es/input/TextArea';
 import { css } from '@emotion/react';
 
 interface Props {
-  data: ProcessStatItem;
+  data: ProcessSnapshotItem;
   visible: boolean;
-  onOk: (values: ProcessStatItem) => void;
+  onOk: (values: ProcessSnapshotItem) => void;
   onClose: () => void;
 }
 
@@ -117,7 +117,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
                 {dayjs(data.deadline).format('YYYY.MM.DD (ddd)')}
               </Col>
               <Col span={12}>
-                마감 {diff} 일 {diff === 0 ? '전' : '경과'}
+                마감 {diff}일 {diff === 0 ? '전' : '경과'}
               </Col>
             </Row>
           </Descriptions.Item>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Divider, Space, Typography } from 'antd';
-import { ProcessStatItem } from 'api/misApi/process';
+import { ProcessSnapshotItem } from 'api/misApi/process';
 import { css } from '@emotion/react';
 import dayjs from 'dayjs';
 import styled from '@emotion/styled';
@@ -12,10 +12,11 @@ const CardRow = styled.p(css`
 const BLINK_DURATION = 5000;
 
 interface CardItemProps {
-  data: ProcessStatItem;
+  data: ProcessSnapshotItem;
   initialBlink?: boolean;
   onDetailClick?: () => void;
   onDeleteClick?: () => void;
+  onEndClick?: () => void;
 }
 
 function ProcessCard({
@@ -23,6 +24,7 @@ function ProcessCard({
   initialBlink,
   onDetailClick,
   onDeleteClick,
+  onEndClick,
 }: CardItemProps) {
   const {
     patient_name,
@@ -87,6 +89,7 @@ function ProcessCard({
       >
         <Button onClick={onDetailClick}>상세보기</Button>
         <Button onClick={onDeleteClick}>삭제</Button>
+        <Button onClick={onEndClick}>종료</Button>
       </Space>
     </Card>
   );

@@ -1,47 +1,5 @@
 import { AxiosInstance } from 'axios';
 
-interface Process {
-  id: number;
-  name: string;
-  use_yn: string;
-  del_yn: string;
-  create_time: string;
-  update_time: string;
-  site_id: number;
-  equipment_uuid: string;
-  scanner_uuid: string;
-  sort_order: number;
-  bg_color: string;
-}
-
-interface ProcessIn {
-  id: number;
-  name: string;
-  site_id: number;
-  equipment_uuid: string;
-  scanner_uuid: string;
-  sort_order: number;
-  bg_color: string;
-}
-
-export interface ProcessStatOut {
-  process_id: number;
-  process_name: string;
-  bg_color: string;
-  item_list: ProcessStatItem[];
-}
-
-export interface ProcessStatItem {
-  id: string;
-  name: string;
-  client_name: string;
-  patient_name: string;
-  client_note: string;
-  req_time: string;
-  start_time: string;
-  deadline: string;
-}
-
 const processAPI = (axios: AxiosInstance) => ({
   getProcess: async () => {
     try {
