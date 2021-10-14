@@ -31,8 +31,7 @@ function ProcessPage() {
   const { showNotification } = useNotification();
 
   const { message, connect, disconnect } = useWebSocket(siteId, clientId);
-  // useVisibilityChange({ onHide: disconnect, onShow: connect });
-  useVisibilityChange();
+  useVisibilityChange({ onHide: disconnect, onShow: connect });
 
   const [board, setBoard] = useState<BoardProps>({
     columns: [],

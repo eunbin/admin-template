@@ -1,4 +1,5 @@
 import { AxiosInstance } from 'axios';
+import { ProcessMemoRequest } from 'types/process';
 
 const processAPI = (axios: AxiosInstance) => ({
   getProcess: async () => {
@@ -60,6 +61,22 @@ const processAPI = (axios: AxiosInstance) => ({
   getProcessSnapshot: async (siteId: string) => {
     try {
       const { data } = await axios.get(`/process/snapshot/${siteId}`);
+      return data;
+    } catch (e) {
+      console.error(e);
+    }
+  },
+  getProcessDetail: async (siteId: string, itemId: string) => {
+    try {
+      const { data } = await axios.get(`/process/history/${siteId}/${itemId}`);
+      return data;
+    } catch (e) {
+      console.error(e);
+    }
+  },
+  addMemo: async (payload: ProcessMemoRequest) => {
+    try {
+      const { data } = await axios.put('/process/memo', payload);
       return data;
     } catch (e) {
       console.error(e);

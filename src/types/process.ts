@@ -40,6 +40,18 @@ export interface ProcessSnapshotItem {
   deadline: string;
 }
 
+export interface ProcessHistory {
+  site_id: number;
+  process_id: number;
+  process_name: string;
+  start_time: string;
+  end_time: string | null;
+  elapsed_time: string | null;
+  user_id: number;
+  user_name: string;
+  comment: string;
+}
+
 export type ProcessRealtimeType = 'New' | 'Update' | 'Delete';
 
 export interface ProcessRealtimeItem {
@@ -60,4 +72,12 @@ export interface ProcessRealtime {
   type: 'Scan';
   content: ProcessRealtimeItem;
   valid_until: string;
+}
+
+export interface ProcessMemoRequest {
+  site_id: number;
+  item_uuid: string;
+  process_id: number;
+  user_id: number;
+  comment: string;
 }

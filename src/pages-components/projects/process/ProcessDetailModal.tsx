@@ -9,12 +9,12 @@ import {
   Table,
 } from 'antd';
 import React, { useMemo } from 'react';
-import { ProcessSnapshotItem } from 'api/misApi/process';
 import dayjs from 'dayjs';
-import { User } from 'api/mockApi/user';
-import Link from 'next/link';
 import TextArea from 'antd/es/input/TextArea';
 import { css } from '@emotion/react';
+import { useMutation, useQuery } from 'react-query';
+import API from 'api';
+import { ProcessMemoRequest, ProcessSnapshotItem } from 'types/process';
 
 interface Props {
   data: ProcessSnapshotItem;
@@ -24,6 +24,25 @@ interface Props {
 }
 
 function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
+  const {
+    data: history,
+    isLoading,
+    refetch,
+  } = useQuery('processDetail', () =>
+    API.mis.process.getProcessDetail('1', data.id)
+  );
+
+  const addMemo = useMutation(
+    (newMemo: ProcessMemoRequest) => {
+      return API.mis.process.addMemo(newMemo);
+    },
+    {
+      onSuccess: () => {
+        refetch();
+      },
+    }
+  );
+
   const [form] = Form.useForm();
 
   const diff = useMemo(
@@ -38,44 +57,57 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
   const columns = [
     {
       title: '공정',
-      dataIndex: 'process',
-      key: 'process',
-      render: (text: string, record: User) => (
-        <Link href={`/projects/settings/users/${record.id}`}>{text}</Link>
-      ),
+      dataIndex: 'process_name',
+      key: 'process_name',
+      width: 150,
     },
     {
       title: '시작시간',
-      dataIndex: 'startTime',
-      key: 'startTime',
+      dataIndex: 'start_time',
+      key: 'start_time',
+      width: 150,
     },
     {
       title: '종료시간',
-      dataIndex: 'deadline',
-      key: 'deadline',
+      dataIndex: 'end_time',
+      key: 'end_time',
+      width: 150,
     },
     {
       title: '소요시간',
-      dataIndex: 'deadline',
-      key: 'deadline',
+      dataIndex: 'elapsed_time',
+      key: 'elapsed_time',
+      width: 150,
     },
     {
       title: '작업자',
-      dataIndex: 'worker',
-      key: 'worker',
+      dataIndex: 'user_name',
+      key: 'user_name',
+      width: 100,
     },
     {
       title: '메모내용',
-      dataIndex: 'memo',
-      key: 'memo',
+      dataIndex: 'comment',
+      key: 'comment',
     },
   ];
+
+  const handleFinish = (values: { memo: string }) => {
+    // TODO
+    addMemo.mutate({
+      site_id: 1,
+      item_uuid: data.id,
+      process_id: 1,
+      user_id: 1,
+      comment: values.memo,
+    });
+  };
 
   return (
     <Modal
       visible={visible}
       title={`${data.patient_name} (${data.client_name})`}
-      width={800}
+      width={1200}
       okText="삭제"
       cancelText="닫기"
       onCancel={onClose}
@@ -131,7 +163,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
         <Table
           rowKey="id"
           columns={columns}
-          dataSource={[]}
+          dataSource={history}
           bordered
           pagination={{
             defaultPageSize: 5,
@@ -150,6 +182,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
           style={{
             marginTop: 20,
           }}
+          onFinish={handleFinish}
         >
           <Form.Item
             name="memo"
@@ -165,7 +198,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
                 placeholder={'공정 N 의 메모를 입력하세요.'}
                 style={{ width: 500 }}
               />
-              <Button type={'primary'} size={'large'}>
+              <Button htmlType="submit" type={'primary'} size={'large'}>
                 입력
               </Button>
             </Space>
