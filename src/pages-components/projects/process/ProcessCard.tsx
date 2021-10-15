@@ -71,7 +71,7 @@ function ProcessCard({
       </CardRow>
       <Divider />
       <CardRow>
-        공장 시작시간 : {dayjs(start_time).format('YYYY.MM.DD HH:mm:ss')}
+        공정 시작시간 : {dayjs(start_time).format('YYYY.MM.DD HH:mm:ss')}
       </CardRow>
       <Divider />
       <CardRow>

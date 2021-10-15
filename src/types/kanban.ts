@@ -1,8 +1,10 @@
-export interface BoardProps {
-  columns: BoardColumn[];
+export interface BoardProps<T> {
+  columns: BoardColumn<T>[];
 }
 
-export interface BoardColumn {
+export interface BoardColumn<T> {
+  id: string | number;
+  title: string;
+  cards: T[];
   [key: string]: any;
-  cards: unknown[];
 }

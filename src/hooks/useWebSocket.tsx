@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import appConfig from 'config/app-config.local';
 import useNotification from 'hooks/useNotification';
 
-const useWebSocket = (siteId: string, clientId: string) => {
+interface Options {
+  onConnect?: () => void;
+}
+
+const useWebSocket = (
+  siteId: string,
+  clientId: string,
+  { onConnect }: Options
+) => {
   const { showNotification } = useNotification();
 
   const socket = useRef<any>(null);
@@ -14,6 +22,7 @@ const useWebSocket = (siteId: string, clientId: string) => {
     );
 
     socket.current.onopen = () => {
+      onConnect?.();
       showNotification({
         description: '소켓 연결에 성공했습니다.',
       });
