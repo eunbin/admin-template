@@ -17,19 +17,19 @@ import API from 'api';
 import { ProcessMemoRequest, ProcessSnapshotItem } from 'types/process';
 
 interface Props {
-  data: ProcessSnapshotItem;
+  process: ProcessSnapshotItem;
   visible: boolean;
   onOk: (values: ProcessSnapshotItem) => void;
   onClose: () => void;
 }
 
-function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
+function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
   const {
     data: history,
     isLoading,
     refetch,
   } = useQuery('processDetail', () =>
-    API.mis.process.getProcessDetail('1', data.id)
+    API.mis.process.getProcessDetail('1', process.id)
   );
 
   const addMemo = useMutation(
@@ -46,13 +46,13 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
   const [form] = Form.useForm();
 
   const diff = useMemo(
-    () => dayjs(new Date()).diff(dayjs(data.deadline), 'days'),
-    [data.deadline]
+    () => dayjs(new Date()).diff(dayjs(process.deadline), 'days'),
+    [process.deadline]
   );
 
-  const requestTime = dayjs(data.req_time);
-  const startTime = dayjs(data.start_time);
-  const deadline = dayjs(data.deadline);
+  const requestTime = dayjs(process.req_time);
+  const startTime = dayjs(process.start_time);
+  const deadline = dayjs(process.deadline);
 
   const columns = [
     {
@@ -96,7 +96,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
     // TODO
     addMemo.mutate({
       site_id: 1,
-      item_uuid: data.id,
+      item_uuid: process.id,
       process_id: 1,
       user_id: 1,
       comment: values.memo,
@@ -106,7 +106,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
   return (
     <Modal
       visible={visible}
-      title={`${data.patient_name} (${data.client_name})`}
+      title={`${process.patient_name} (${process.client_name})`}
       width={1200}
       okText="삭제"
       cancelText="닫기"
@@ -115,7 +115,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
         form
           .validateFields()
           .then((values) => {
-            onOk(data);
+            onOk(process);
             form.resetFields();
           })
           .catch((info) => {
@@ -146,7 +146,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
           <Descriptions.Item label="마감시간">
             <Row>
               <Col span={12}>
-                {dayjs(data.deadline).format('YYYY.MM.DD (ddd)')}
+                {dayjs(process.deadline).format('YYYY.MM.DD (ddd)')}
               </Col>
               <Col span={12}>
                 마감 {diff}일 {diff === 0 ? '전' : '경과'}
@@ -154,7 +154,7 @@ function ProcessDetailModal({ data, visible, onOk, onClose }: Props) {
             </Row>
           </Descriptions.Item>
           <Descriptions.Item label="고객 요청사항">
-            {data.client_note}
+            {process.client_note}
           </Descriptions.Item>
         </Descriptions>
 

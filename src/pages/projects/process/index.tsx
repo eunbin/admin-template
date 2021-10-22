@@ -1,50 +1,49 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import PageLayout from 'layouts/PageLayout';
-import '@asseinfo/react-kanban/dist/styles.css';
-import ProcessCard from 'pages-components/projects/process/ProcessCard';
-import { useModal } from 'contexts/ModalProvider';
-import useConfirm from 'hooks/useConfirm';
-import useNotification from 'hooks/useNotification';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import API from 'api';
 import {
   ProcessSnapshotItem,
   ProcessSnapshot,
   ProcessRealtime,
-  ProcessRealtimeItem,
+  ProcessBoardCardItem,
 } from 'types/process';
-import dynamic from 'next/dynamic';
-import useWebSocket from 'hooks/useWebSocket';
-import useVisibilityChange from 'hooks/useVisibilityChange';
 import { BoardProps } from 'types/kanban';
+import useWebSocket from 'hooks/useWebSocket';
+import PageLayout from 'layouts/PageLayout';
+import ProcessBoardToolbar from 'pages-components/projects/process/ProcessBoardToolbar';
+import ProcessBoard from 'pages-components/projects/process/ProcessBoard';
+import { addCard, moveCard, removeCard, sortColumns } from 'utils/kanban';
 import { Button } from 'antd';
-import { logger } from 'react-query/types/react/logger';
-
-const Board = dynamic(() => import('@lourenci/react-kanban'), {
-  ssr: false,
-});
+import { setCookie } from 'utils/client-cookie';
+import { GetServerSideProps } from 'next';
+import nookies from 'nookies';
 
 const siteId = '1';
 const clientId = '1';
 
-function ProcessPage() {
-  const { showModal, closeModal } = useModal();
-  const { showConfirm } = useConfirm();
-  const { showNotification } = useNotification();
+interface Props {
+  cookies: any;
+}
 
-  const { data, refetch, isLoading, error } = useQuery(
+function ProcessPage({ cookies }: Props) {
+  const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
+    columns: [],
+  });
+
+  const { refetch } = useQuery(
     'processSnapshot',
     () => API.mis.process.getProcessSnapshot(siteId),
     {
       onSuccess: (data: ProcessSnapshot[]) => {
-        const newBoard: BoardProps<ProcessSnapshotItem> = {
+        const newBoard: BoardProps<ProcessBoardCardItem> = {
           // @ts-ignore
           columns:
-            data?.map((process) => ({
-              ...process,
-              id: process.process_id, // required, react-kanban column id
-              title: process.process_name, // required, react-kanban column name
-              cards: process.item_list,
+            data?.map(({ process_id, process_name, item_list, ...rest }) => ({
+              ...rest,
+              id: process_id, // required, react-kanban column id
+              title: process_name, // required, react-kanban column name
+              cards: item_list,
+              initialBlink: false,
             })) || [],
         };
         setBoard(newBoard);
@@ -52,232 +51,154 @@ function ProcessPage() {
     }
   );
 
-  const { message, connect, disconnect } = useWebSocket(siteId, clientId, {
+  const { message } = useWebSocket(siteId, clientId, {
+    enabled: true,
+    visibilityChange: true,
     onConnect: () => {
       refetch();
     },
-  });
-  useVisibilityChange({ onHide: disconnect, onShow: connect });
-
-  const [board, setBoard] = useState<BoardProps<ProcessSnapshotItem>>({
-    columns: [],
-  });
-
-  const testId = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!message) {
-      return;
-    }
-
-    try {
+    onMessage: async (message: string) => {
+      if (!message) {
+        return;
+      }
       const data: ProcessRealtime = JSON.parse(message);
       if (data?.type !== 'Scan') {
         return;
       }
-
       const { content } = data;
       switch (content.type) {
         case 'New':
-          console.log('New: ', content);
-          addCard(content.process_id, content);
+          setBoard(await addCard(board, content.process_id, content));
           break;
         case 'Update':
-          console.log('Update: ', content);
+          setBoard(await moveCard(board, content.process_id, content.item_id));
           break;
         case 'Delete':
-          console.log('Delete: ', content);
           break;
         default:
           break;
       }
-    } catch (e) {
-      // console.error(e);
-    }
-  }, [message]);
+    },
+  });
 
-  const addCard = (columnId: number, process: ProcessRealtimeItem) => {
-    const inColumn = board.columns.find(
-      (column) => column.process_id === columnId
-    );
+  const [isMaxHeight, setIsMaxHeight] = useState<boolean>(
+    cookies['isMaxHeight'] === 'true'
+  );
 
-    if (!inColumn) {
-      return;
-    }
+  const handleCardHeightChange = useCallback((isMaxHeight: boolean) => {
+    setIsMaxHeight(isMaxHeight);
+    setCookie('isMaxHeight', isMaxHeight);
+  }, []);
 
-    const now = new Date();
-
-    import('@lourenci/react-kanban').then(({ addCard }) => {
-      const newBoard = addCard(
-        board,
-        inColumn,
-        {
-          ...process,
-          id: process.item_id,
-        },
-        { on: 'top' }
-      );
+  const handleSortChange = useCallback(
+    (field: keyof ProcessSnapshotItem, isAsc: boolean) => {
+      const newBoard: BoardProps<ProcessBoardCardItem> = {
+        columns: sortColumns(board, field, isAsc),
+      };
       setBoard(newBoard);
-    });
-  };
-
-  const moveCard = (cardId: string, columnId: number) => {
-    const { columns } = board;
-
-    let position: {
-      fromPosition: number;
-      fromColumnId: number;
-      toPosition: number;
-      toColumnId: number;
-    } = null;
-
-    columns.forEach((column, columnIndex) => {
-      column.cards.forEach((card, cardIndex) => {
-        if (card.id === cardId) {
-          position = {
-            fromPosition: cardIndex,
-            fromColumnId: columnIndex + 1,
-            toPosition: 0,
-            toColumnId: columnId,
-          };
-        }
-      });
-    });
-
-    if (!position) {
-      return;
-    }
-
-    import('@lourenci/react-kanban').then(({ moveCard }) => {
-      const { toColumnId, fromColumnId, fromPosition, toPosition } = position;
-
-      const newBoard = moveCard(
-        board,
-        {
-          fromPosition,
-          fromColumnId,
-        },
-        {
-          toPosition,
-          toColumnId,
-        }
-      );
-      setBoard(newBoard);
-    });
-  };
-
-  const handleAdd = () => {
-    const date = new Date();
-    testId.current = date.toISOString();
-
-    const data: ProcessRealtimeItem = {
-      client_name: 'client_name',
-      client_note: 'client_note',
-      deadline: '2021-10-05T11:14:32',
-      item_id: testId.current,
-      item_name: 'item_name',
-      patient_name: testId.current,
-      process_id: 1,
-      req_time: '2021-10-05T11:14:32',
-      site_id: 1,
-      start_time: undefined,
-      type: 'New',
-    };
-    addCard(data.process_id, data);
-  };
-
-  const handleMove = () => {
-    if (!testId.current) {
-      return;
-    }
-
-    const data: ProcessRealtimeItem = {
-      item_id: testId.current,
-      process_id: 2,
-      site_id: 1,
-      type: 'Update',
-    };
-    moveCard(data.item_id, data.process_id);
-  };
-
-  const handleDetailClick = (process: ProcessSnapshotItem) => () => {
-    import('pages-components/projects/process/ProcessDetailModal').then(
-      ({ default: Component }) => {
-        showModal({
-          component: Component,
-          modalProps: {
-            data: process,
-            onOk: (process: ProcessSnapshotItem) => {
-              // TODO: 삭제 api
-              closeModal();
-              showNotification({
-                description: `${process.patient_name} (${process.client_name}) 가 삭제되었습니다.`,
-              });
-            },
-          },
-        });
-      }
-    );
-  };
-
-  const handleDeleteClick = (process: ProcessSnapshotItem) => () => {
-    showConfirm({
-      content: `${process.patient_name} (${process.client_name}) 를 삭제하시겠습니까?`,
-      okText: '삭제',
-      cancelText: '취소',
-      onOk: () => {
-        showNotification({
-          description: `${process.patient_name} (${process.client_name}) 가 삭제되었습니다.`,
-        });
-      },
-    });
-  };
-
-  const handleEndClick = (process: ProcessSnapshotItem) => () => {
-    showConfirm({
-      content: `${process.patient_name} (${process.client_name}) 를 종료하시겠습니까?`,
-      okText: '종료',
-      cancelText: '취소',
-      onOk: () => {
-        showNotification({
-          description: `${process.patient_name} (${process.client_name}) 가 종료되었습니다.`,
-        });
-      },
-    });
-  };
+      setCookie('sortField', field);
+      setCookie('sortIsAsc', isAsc);
+    },
+    [board]
+  );
 
   return (
     <PageLayout>
       <>
-        <Button onClick={handleAdd}>add</Button>
-        <Button onClick={handleMove}>move</Button>
-        <Board
-          renderColumnHeader={(column) => {
-            const { title, bg_color } = column;
-            return (
-              <div css={{ background: bg_color }}>
-                <h3 css={{ textAlign: 'center' }}>{title}</h3>
-              </div>
+        <Button
+          onClick={async () => {
+            const process: ProcessRealtime = {
+              type: 'Scan',
+              content: {
+                type: 'New',
+                site_id: 1,
+                process_id: 1,
+                item_id: '9999',
+                item_name: 'uuid 009999',
+                client_name: '고객사 2',
+                patient_name: '홍길동 9999',
+                client_note: '고객 요청사항 9999',
+                req_time: '2021-10-16 09:31:01',
+                start_time: '2021-10-22 12:49:25',
+                deadline: '44507',
+              },
+              valid_until: '2021-10-23 12:49:24.626511',
+            };
+            setBoard(await addCard(board, 2, process.content));
+          }}
+        >
+          add
+        </Button>
+        <Button
+          onClick={async () => {
+            const process: ProcessRealtime = {
+              type: 'Scan',
+              content: {
+                type: 'Update',
+                site_id: 1,
+                process_id: 3,
+                item_id: '9999',
+                start_time: '2021-10-22 12:49:24.925013',
+              },
+              valid_until: '2021-10-23 12:49:24.939781',
+            };
+            setBoard(
+              await moveCard(
+                board,
+                process.content.process_id,
+                process.content.item_id
+              )
             );
           }}
-          renderCard={(process: ProcessSnapshotItem) => (
-            <ProcessCard
-              key={process.id}
-              data={process}
-              initialBlink={false}
-              onDetailClick={handleDetailClick(process)}
-              onDeleteClick={handleDeleteClick(process)}
-              onEndClick={handleEndClick(process)}
-            />
-          )}
-          disableCardDrag
-          disableColumnDrag
         >
-          {board}
-        </Board>
+          update
+        </Button>
+        <Button
+          onClick={async () => {
+            const process: ProcessRealtime = {
+              type: 'Scan',
+              content: {
+                type: 'Delete',
+                site_id: 1,
+                process_id: 3,
+                item_id: '9999',
+                start_time: null,
+              },
+              valid_until: '2021-10-23 12:49:19.581914',
+            };
+            setBoard(
+              await removeCard(
+                board,
+                process.content.process_id,
+                process.content.item_id
+              )
+            );
+          }}
+        >
+          remove
+        </Button>
+        <ProcessBoardToolbar
+          initialIsMaxHeight={isMaxHeight}
+          initialSortField={cookies['sortField']}
+          initialIsAsc={cookies['sortIsAsc'] === 'true'}
+          onCardHeightChange={handleCardHeightChange}
+          onSortChange={handleSortChange}
+        />
+        <ProcessBoard board={board} isMaxHeight={isMaxHeight} />
       </>
     </PageLayout>
   );
 }
 
 export default ProcessPage;
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  let cookies = nookies.get(ctx);
+
+  return {
+    props: {
+      server: true,
+      cookies,
+    },
+  };
+};

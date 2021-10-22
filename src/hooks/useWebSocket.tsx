@@ -1,20 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
 import appConfig from 'config/app-config.local';
 import useNotification from 'hooks/useNotification';
+import useVisibilityChange from 'hooks/useVisibilityChange';
 
 interface Options {
+  enabled: boolean;
+  visibilityChange?: boolean;
   onConnect?: () => void;
+  onMessage?: (event: any) => void;
 }
 
 const useWebSocket = (
   siteId: string,
   clientId: string,
-  { onConnect }: Options
+  { enabled, visibilityChange, onConnect, onMessage }: Options
 ) => {
   const { showNotification } = useNotification();
 
   const socket = useRef<any>(null);
-  const [message, setMessage] = useState();
+  const [message, setMessage] = useState<string>('');
 
   const connect = () => {
     socket.current = new WebSocket(
@@ -43,7 +47,9 @@ const useWebSocket = (
     };
 
     socket.current.onmessage = (event: any) => {
-      setMessage(event.data);
+      const message = event.data as string;
+      setMessage(message);
+      onMessage?.(message);
     };
   };
 
@@ -52,12 +58,20 @@ const useWebSocket = (
   };
 
   useEffect(() => {
-    connect();
+    if (enabled) {
+      connect();
+    }
 
     return () => {
-      disconnect();
+      if (enabled) {
+        disconnect();
+      }
     };
-  }, []);
+  }, [enabled]);
+
+  useVisibilityChange(
+    visibilityChange ? { onHide: disconnect, onShow: connect } : {}
+  );
 
   return { message, connect, disconnect };
 };

@@ -40,6 +40,10 @@ export interface ProcessSnapshotItem {
   deadline: string;
 }
 
+export interface ProcessBoardCardItem extends ProcessSnapshotItem {
+  initialBlink?: boolean;
+}
+
 export interface ProcessHistory {
   site_id: number;
   process_id: number;

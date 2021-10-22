@@ -6,5 +6,5 @@ export interface BoardColumn<T> {
   id: string | number;
   title: string;
   cards: T[];
-  [key: string]: any;
+  bg_color: string;
 }
