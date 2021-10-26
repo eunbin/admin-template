@@ -12,7 +12,7 @@ export const sortColumns = (
 ): any => {
   return board.columns.map((column) => {
     const sorted = column.cards.sort((a, b) =>
-      a[field].localeCompare(b[field])
+      a[field].toString().localeCompare(b[field].toString())
     );
     return {
       ...column,

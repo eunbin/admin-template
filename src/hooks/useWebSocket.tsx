@@ -11,7 +11,7 @@ interface Options {
 }
 
 const useWebSocket = (
-  siteId: string,
+  siteId: number,
   clientId: string,
   { enabled, visibilityChange, onConnect, onMessage }: Options
 ) => {

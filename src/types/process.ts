@@ -38,6 +38,8 @@ export interface ProcessSnapshotItem {
   req_time: string;
   start_time: string;
   deadline: string;
+  // XXX: front 에서 추가한 필드
+  process_id: number;
 }
 
 export interface ProcessBoardCardItem extends ProcessSnapshotItem {

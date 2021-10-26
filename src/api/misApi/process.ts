@@ -26,14 +26,6 @@ const processAPI = (axios: AxiosInstance) => ({
       console.error(e);
     }
   },
-  deleteProcess: async () => {
-    try {
-      const { data } = await axios.delete('/process/');
-      return data;
-    } catch (e) {
-      console.error(e);
-    }
-  },
   getProcessBySiteId: async (siteId: string) => {
     try {
       const { data } = await axios.get(`/process/site/${siteId}`);
@@ -58,7 +50,7 @@ const processAPI = (axios: AxiosInstance) => ({
       console.error(e);
     }
   },
-  getProcessSnapshot: async (siteId: string) => {
+  getProcessSnapshot: async (siteId: number) => {
     try {
       const { data } = await axios.get(`/process/snapshot/${siteId}`);
       return data;

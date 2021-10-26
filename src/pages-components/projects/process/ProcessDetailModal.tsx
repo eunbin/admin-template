@@ -17,19 +17,20 @@ import API from 'api';
 import { ProcessMemoRequest, ProcessSnapshotItem } from 'types/process';
 
 interface Props {
-  process: ProcessSnapshotItem;
+  siteId: number;
+  item: ProcessSnapshotItem;
   visible: boolean;
   onOk: (values: ProcessSnapshotItem) => void;
   onClose: () => void;
 }
 
-function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
+function ProcessDetailModal({ siteId, item, visible, onOk, onClose }: Props) {
   const {
     data: history,
     isLoading,
     refetch,
   } = useQuery('processDetail', () =>
-    API.mis.process.getProcessDetail('1', process.id)
+    API.mis.process.getProcessDetail('1', item.id)
   );
 
   const addMemo = useMutation(
@@ -46,13 +47,13 @@ function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
   const [form] = Form.useForm();
 
   const diff = useMemo(
-    () => dayjs(new Date()).diff(dayjs(process.deadline), 'days'),
-    [process.deadline]
+    () => dayjs(new Date()).diff(dayjs(item.deadline), 'days'),
+    [item.deadline]
   );
 
-  const requestTime = dayjs(process.req_time);
-  const startTime = dayjs(process.start_time);
-  const deadline = dayjs(process.deadline);
+  const requestTime = dayjs(item.req_time);
+  const startTime = dayjs(item.start_time);
+  const deadline = dayjs(item.deadline);
 
   const columns = [
     {
@@ -93,12 +94,11 @@ function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
   ];
 
   const handleFinish = (values: { memo: string }) => {
-    // TODO
     addMemo.mutate({
-      site_id: 1,
-      item_uuid: process.id,
-      process_id: 1,
-      user_id: 1,
+      site_id: siteId,
+      item_uuid: item.id,
+      process_id: item.process_id,
+      user_id: 1, // TODO: userId
       comment: values.memo,
     });
   };
@@ -106,7 +106,7 @@ function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
   return (
     <Modal
       visible={visible}
-      title={`${process.patient_name} (${process.client_name})`}
+      title={`${item.patient_name} (${item.client_name})`}
       width={1200}
       okText="삭제"
       cancelText="닫기"
@@ -115,7 +115,7 @@ function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
         form
           .validateFields()
           .then((values) => {
-            onOk(process);
+            onOk(item);
             form.resetFields();
           })
           .catch((info) => {
@@ -146,7 +146,7 @@ function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
           <Descriptions.Item label="마감시간">
             <Row>
               <Col span={12}>
-                {dayjs(process.deadline).format('YYYY.MM.DD (ddd)')}
+                {dayjs(item.deadline).format('YYYY.MM.DD (ddd)')}
               </Col>
               <Col span={12}>
                 마감 {diff}일 {diff === 0 ? '전' : '경과'}
@@ -154,7 +154,7 @@ function ProcessDetailModal({ process, visible, onOk, onClose }: Props) {
             </Row>
           </Descriptions.Item>
           <Descriptions.Item label="고객 요청사항">
-            {process.client_note}
+            {item.client_note}
           </Descriptions.Item>
         </Descriptions>
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import API from 'api';
 import {
   ProcessSnapshotItem,
@@ -17,8 +17,10 @@ import { Button } from 'antd';
 import { setCookie } from 'utils/client-cookie';
 import { GetServerSideProps } from 'next';
 import nookies from 'nookies';
+import { useModal } from 'contexts/ModalProvider';
+import useNotification from 'hooks/useNotification';
 
-const siteId = '1';
+const siteId = 1;
 const clientId = '1';
 
 interface Props {
@@ -26,6 +28,9 @@ interface Props {
 }
 
 function ProcessPage({ cookies }: Props) {
+  const { closeModal } = useModal();
+  const { showNotification } = useNotification();
+
   const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
     columns: [],
   });
@@ -42,11 +47,63 @@ function ProcessPage({ cookies }: Props) {
               ...rest,
               id: process_id, // required, react-kanban column id
               title: process_name, // required, react-kanban column name
-              cards: item_list,
+              cards: item_list.map((item) => ({ ...item, process_id })),
               initialBlink: false,
             })) || [],
         };
         setBoard(newBoard);
+      },
+    }
+  );
+
+  const deleteProcess = useMutation(
+    (item: ProcessSnapshotItem) => {
+      return API.socket.socket.deleteItem({
+        process_id: item.process_id,
+        item_id: item.id,
+        site_id: siteId,
+        user_id: 1, // TODO: userId
+      });
+    },
+    {
+      onSuccess: (data: boolean, variables, context) => {
+        closeModal();
+        showNotification({
+          description: '정상적으로 삭제되었습니다.',
+        });
+        refetch();
+      },
+      onError: (error, variables, context) => {
+        console.error(error);
+        showNotification({
+          description: '삭제에 실패했습니다.',
+        });
+      },
+    }
+  );
+
+  const closeProcess = useMutation(
+    (item: ProcessSnapshotItem) => {
+      return API.socket.socket.closeProcess({
+        process_id: item.process_id,
+        item_id: item.id,
+        site_id: siteId, // TODO
+        user_id: 1, // TODO: userId
+      });
+    },
+    {
+      onSuccess: (data: boolean, variables, context) => {
+        closeModal();
+        showNotification({
+          description: '정상적으로 종료되었습니다.',
+        });
+        refetch();
+      },
+      onError: (error, variables, context) => {
+        console.error(error);
+        showNotification({
+          description: '종료에 실패했습니다.',
+        });
       },
     }
   );
@@ -184,7 +241,15 @@ function ProcessPage({ cookies }: Props) {
           onCardHeightChange={handleCardHeightChange}
           onSortChange={handleSortChange}
         />
-        <ProcessBoard board={board} isMaxHeight={isMaxHeight} />
+        <ProcessBoard
+          siteId={siteId}
+          board={board}
+          isMaxHeight={isMaxHeight}
+          onDelete={(item: ProcessSnapshotItem) => deleteProcess.mutate(item)}
+          onProcessClose={(item: ProcessSnapshotItem) =>
+            closeProcess.mutate(item)
+          }
+        />
       </>
     </PageLayout>
   );

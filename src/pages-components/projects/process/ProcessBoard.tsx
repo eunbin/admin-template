@@ -10,11 +10,20 @@ const Board = dynamic(() => import('@lourenci/react-kanban'), {
 });
 
 interface ProcessBoardProps {
+  siteId: number;
   board: BoardProps<ProcessBoardCardItem>;
   isMaxHeight: boolean;
+  onDelete: (item: ProcessSnapshotItem) => void;
+  onProcessClose: (item: ProcessSnapshotItem) => void;
 }
 
-function ProcessBoard({ board, isMaxHeight }: ProcessBoardProps) {
+function ProcessBoard({
+  siteId,
+  board,
+  isMaxHeight,
+  onDelete,
+  onProcessClose,
+}: ProcessBoardProps) {
   return (
     <Board
       /* @ts-ignore*/
@@ -26,9 +35,12 @@ function ProcessBoard({ board, isMaxHeight }: ProcessBoardProps) {
       renderCard={(process: ProcessBoardCardItem) => (
         <ProcessCard
           key={process.id}
-          process={process}
+          siteId={siteId}
+          item={process}
           initialBlink={process.initialBlink}
           fullContent={isMaxHeight}
+          onDelete={onDelete}
+          onProcessClose={onProcessClose}
         />
       )}
       disableCardDrag

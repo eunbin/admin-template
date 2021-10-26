@@ -1,4 +1,4 @@
-type ApiService = 'mockApi' | 'agGridApi' | 'misApi';
+type ApiService = 'mockApi' | 'agGridApi' | 'misApi' | 'socketApi';
 
 interface ApiServerConfig {
   url: string;
@@ -23,6 +23,9 @@ const appConfig: AppConfigLocal = {
     },
     misApi: {
       url: 'http://47j1hszywm2yvn1uem.toastgslb.com/mis',
+    },
+    socketApi: {
+      url: 'http://47j1hszywm2yvn1uem.toastgslb.com/socket',
     },
   },
   socketServer: {

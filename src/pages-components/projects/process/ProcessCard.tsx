@@ -15,15 +15,24 @@ const CardRow = styled.p(css`
 const BLINK_DURATION = 5000;
 
 interface Props {
-  process: ProcessSnapshotItem;
+  siteId: number;
+  item: ProcessSnapshotItem;
   initialBlink?: boolean;
   fullContent?: boolean;
+  onDelete: (item: ProcessSnapshotItem) => void;
+  onProcessClose: (item: ProcessSnapshotItem) => void;
 }
 
-function ProcessCard({ process, initialBlink, fullContent }: Props) {
-  const { showModal, closeModal } = useModal();
+function ProcessCard({
+  siteId,
+  item,
+  initialBlink,
+  fullContent,
+  onDelete,
+  onProcessClose,
+}: Props) {
+  const { showModal } = useModal();
   const { showConfirm } = useConfirm();
-  const { showNotification } = useNotification();
 
   const {
     patient_name,
@@ -32,7 +41,7 @@ function ProcessCard({ process, initialBlink, fullContent }: Props) {
     req_time,
     start_time,
     deadline,
-  } = process;
+  } = item;
 
   const [className, setClassName] = useState(initialBlink ? 'blink' : '');
 
@@ -49,58 +58,51 @@ function ProcessCard({ process, initialBlink, fullContent }: Props) {
   );
 
   const handleDetailClick = useCallback(
-    (process: ProcessSnapshotItem) => () => {
+    (item: ProcessSnapshotItem) => () => {
       import('pages-components/projects/process/ProcessDetailModal').then(
         ({ default: Component }) => {
           showModal({
             component: Component,
             modalProps: {
-              process: process,
-              onOk: (process: ProcessSnapshotItem) => {
-                // TODO: 삭제 api
-                closeModal();
-                showNotification({
-                  description: `${process.patient_name} (${process.client_name}) 가 삭제되었습니다.`,
-                });
+              item,
+              siteId,
+              onOk: (item: ProcessSnapshotItem) => {
+                onDelete(item);
               },
             },
           });
         }
       );
     },
-    [closeModal, showModal, showNotification]
+    [onDelete, showModal]
   );
 
   const handleDeleteClick = useCallback(
-    (process: ProcessSnapshotItem) => () => {
+    (item: ProcessSnapshotItem) => () => {
       showConfirm({
-        content: `${process.patient_name} (${process.client_name}) 를 삭제하시겠습니까?`,
+        content: `${item.patient_name} (${item.client_name}) 를 삭제하시겠습니까?`,
         okText: '삭제',
         cancelText: '취소',
         onOk: () => {
-          showNotification({
-            description: `${process.patient_name} (${process.client_name}) 가 삭제되었습니다.`,
-          });
+          onDelete(item);
         },
       });
     },
-    [showConfirm, showNotification]
+    [onDelete, showConfirm]
   );
 
   const handleEndClick = useCallback(
-    (process: ProcessSnapshotItem) => () => {
+    (item: ProcessSnapshotItem) => () => {
       showConfirm({
-        content: `${process.patient_name} (${process.client_name}) 를 종료하시겠습니까?`,
+        content: `${item.patient_name} (${item.client_name}) 를 종료하시겠습니까?`,
         okText: '종료',
         cancelText: '취소',
         onOk: () => {
-          showNotification({
-            description: `${process.patient_name} (${process.client_name}) 가 종료되었습니다.`,
-          });
+          onProcessClose(item);
         },
       });
     },
-    [showConfirm, showNotification]
+    [onProcessClose, showConfirm]
   );
 
   return (
@@ -145,9 +147,9 @@ function ProcessCard({ process, initialBlink, fullContent }: Props) {
           padding: 10px 0;
         `}
       >
-        <Button onClick={handleDetailClick(process)}>상세보기</Button>
-        <Button onClick={handleDeleteClick(process)}>삭제</Button>
-        <Button onClick={handleEndClick(process)}>종료</Button>
+        <Button onClick={handleDetailClick(item)}>상세보기</Button>
+        <Button onClick={handleDeleteClick(item)}>삭제</Button>
+        <Button onClick={handleEndClick(item)}>종료</Button>
       </Space>
     </Card>
   );
