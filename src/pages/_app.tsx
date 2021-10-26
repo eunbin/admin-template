@@ -6,6 +6,7 @@ import type { AppProps } from 'next/app';
 import ModalProvider from 'contexts/ModalProvider';
 import DrawerProvider from 'contexts/DrawerProvider';
 import AppProvider from 'contexts/AppProvider';
+import { AppDataProvider } from 'contexts/AppDataProvider';
 import Head from 'next/head';
 import 'styles/react-kanban.css';
 
@@ -19,13 +20,15 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:title" content="My page title" key="title" />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <AppProvider>
-          <ModalProvider>
-            <DrawerProvider>
-              <Component {...pageProps} />
-            </DrawerProvider>
-          </ModalProvider>
-        </AppProvider>
+        <AppDataProvider>
+          <AppProvider>
+            <ModalProvider>
+              <DrawerProvider>
+                <Component {...pageProps} />
+              </DrawerProvider>
+            </ModalProvider>
+          </AppProvider>
+        </AppDataProvider>
       </QueryClientProvider>
     </div>
   );

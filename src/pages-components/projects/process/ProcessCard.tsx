@@ -5,8 +5,8 @@ import dayjs from 'dayjs';
 import styled from '@emotion/styled';
 import { useModal } from 'contexts/ModalProvider';
 import useConfirm from 'hooks/useConfirm';
-import useNotification from 'hooks/useNotification';
 import { ProcessSnapshotItem } from 'types/process';
+import { useAppDataState } from 'contexts/AppDataProvider';
 
 const CardRow = styled.p(css`
   padding: 0 10px;
@@ -15,7 +15,6 @@ const CardRow = styled.p(css`
 const BLINK_DURATION = 5000;
 
 interface Props {
-  siteId: number;
   item: ProcessSnapshotItem;
   initialBlink?: boolean;
   fullContent?: boolean;
@@ -24,7 +23,6 @@ interface Props {
 }
 
 function ProcessCard({
-  siteId,
   item,
   initialBlink,
   fullContent,
@@ -33,6 +31,8 @@ function ProcessCard({
 }: Props) {
   const { showModal } = useModal();
   const { showConfirm } = useConfirm();
+
+  const { siteId } = useAppDataState();
 
   const {
     patient_name,

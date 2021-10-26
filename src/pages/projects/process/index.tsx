@@ -19,17 +19,23 @@ import { GetServerSideProps } from 'next';
 import nookies from 'nookies';
 import { useModal } from 'contexts/ModalProvider';
 import useNotification from 'hooks/useNotification';
-
-const siteId = 1;
-const clientId = '1';
+import { useAppDataDispatch, useAppDataState } from 'contexts/AppDataProvider';
 
 interface Props {
-  cookies: any;
+  cookies: Record<string, any>;
 }
 
 function ProcessPage({ cookies }: Props) {
   const { closeModal } = useModal();
   const { showNotification } = useNotification();
+
+  const { siteId, clientId } = useAppDataState();
+  const dispatch = useAppDataDispatch();
+
+  useEffect(() => {
+    dispatch({ type: 'SET_SITE_ID', siteId: 1 });
+    dispatch({ type: 'SET_CLIENT_ID', clientId: '1' });
+  }, [dispatch]);
 
   const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
     columns: [],
@@ -37,9 +43,12 @@ function ProcessPage({ cookies }: Props) {
 
   const { refetch } = useQuery(
     'processSnapshot',
-    () => API.mis.process.getProcessSnapshot(siteId),
+    () => !!siteId && API.mis.process.getProcessSnapshot(siteId),
     {
       onSuccess: (data: ProcessSnapshot[]) => {
+        if (!data) {
+          return;
+        }
         const newBoard: BoardProps<ProcessBoardCardItem> = {
           // @ts-ignore
           columns:
@@ -109,7 +118,7 @@ function ProcessPage({ cookies }: Props) {
   );
 
   const { message } = useWebSocket(siteId, clientId, {
-    enabled: true,
+    enabled: !!siteId,
     visibilityChange: true,
     onConnect: () => {
       refetch();
@@ -242,7 +251,6 @@ function ProcessPage({ cookies }: Props) {
           onSortChange={handleSortChange}
         />
         <ProcessBoard
-          siteId={siteId}
           board={board}
           isMaxHeight={isMaxHeight}
           onDelete={(item: ProcessSnapshotItem) => deleteProcess.mutate(item)}
