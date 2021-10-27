@@ -6,7 +6,7 @@ import {
 } from 'types/process';
 
 interface SortOption {
-  field: keyof ProcessSnapshotItem;
+  sortField: keyof ProcessSnapshotItem;
   isAsc: boolean;
 }
 
@@ -14,10 +14,10 @@ export const sortColumns = (
   board: BoardProps<ProcessBoardCardItem>,
   sortOption: SortOption
 ): any => {
-  const { field, isAsc } = sortOption;
+  const { sortField, isAsc } = sortOption;
   return board.columns.map((column) => {
     const sorted = column.cards.sort((a, b) =>
-      a[field].toString().localeCompare(b[field].toString())
+      a[sortField].toString().localeCompare(b[sortField].toString())
     );
     return {
       ...column,

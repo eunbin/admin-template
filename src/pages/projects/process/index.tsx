@@ -149,8 +149,8 @@ function ProcessPage({ cookies }: Props) {
         case 'New':
           setBoard(
             await addCardBySortOption(board, content.process_id, content, {
-              field: 'deadline',
-              isAsc: false,
+              sortField,
+              isAsc,
             })
           );
           break;
@@ -185,7 +185,7 @@ function ProcessPage({ cookies }: Props) {
       setCookie('sortIsAsc', isAsc);
 
       const newBoard: BoardProps<ProcessBoardCardItem> = {
-        columns: sortColumns(board, { field, isAsc }),
+        columns: sortColumns(board, { sortField: field, isAsc }),
       };
       setBoard(newBoard);
     },
@@ -216,8 +216,8 @@ function ProcessPage({ cookies }: Props) {
             };
             setBoard(
               await addCardBySortOption(board, 2, process.content, {
-                field: 'deadline',
-                isAsc: false,
+                sortField,
+                isAsc,
               })
             );
           }}
