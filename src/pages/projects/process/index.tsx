@@ -158,6 +158,9 @@ function ProcessPage({ cookies }: Props) {
           setBoard(await moveCard(board, content.process_id, content.item_id));
           break;
         case 'Delete':
+          setBoard(
+            await removeCard(board, content.process_id, content.item_id)
+          );
           break;
         default:
           break;
