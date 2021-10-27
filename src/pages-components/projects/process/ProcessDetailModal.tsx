@@ -180,7 +180,6 @@ function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
         <Form
           form={form}
           name="form_in_modal"
-          initialValues={{ memo: 'memo' }}
           style={{
             marginTop: 20,
           }}
