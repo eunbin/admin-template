@@ -38,13 +38,6 @@ function ProcessPage({ cookies }: Props) {
   const { showNotification } = useNotification();
 
   const { siteId, clientId, user } = useAppDataState();
-  const dispatch = useAppDataDispatch();
-
-  useEffect(() => {
-    dispatch({ type: 'SET_SITE_ID', siteId: 1 });
-    dispatch({ type: 'SET_CLIENT_ID', clientId: '1' });
-    dispatch({ type: 'SET_USER', user: { id: 1 } });
-  }, [dispatch]);
 
   const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
     columns: [],

@@ -20,7 +20,13 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta property="og:title" content="My page title" key="title" />
       </Head>
       <QueryClientProvider client={queryClient}>
-        <AppDataProvider>
+        <AppDataProvider
+          initialValues={{
+            siteId: 1,
+            clientId: '1',
+            user: { id: 1 },
+          }}
+        >
           <AppProvider>
             <ModalProvider>
               <DrawerProvider>

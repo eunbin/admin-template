@@ -42,12 +42,14 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function AppDataProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, {
-    siteId: 0,
-    clientId: '',
-    user: { id: 0 },
-  });
+export function AppDataProvider({
+  initialValues,
+  children,
+}: {
+  initialValues: State;
+  children: React.ReactNode;
+}) {
+  const [state, dispatch] = useReducer(reducer, initialValues);
 
   return (
     <AppDataStateContext.Provider value={state}>
