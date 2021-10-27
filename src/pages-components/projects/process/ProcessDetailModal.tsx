@@ -163,7 +163,7 @@ function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
         <br />
 
         <Table
-          rowKey="id"
+          rowKey="process_id"
           columns={columns}
           dataSource={history}
           bordered
