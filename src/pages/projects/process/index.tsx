@@ -27,6 +27,7 @@ import nookies from 'nookies';
 import { useModal } from 'contexts/ModalProvider';
 import useNotification from 'hooks/useNotification';
 import { useAppDataDispatch, useAppDataState } from 'contexts/AppDataProvider';
+import { isJsonString } from 'utils/json';
 
 interface Props {
   cookies: Record<string, any>;
@@ -136,11 +137,11 @@ function ProcessPage({ cookies }: Props) {
       refetch();
     },
     onMessage: async (message: string) => {
-      if (!message) {
+      if (!message || !isJsonString(message)) {
         return;
       }
       const data: ProcessRealtime = JSON.parse(message);
-      if (data?.type !== 'Scan') {
+      if (data.type !== 'Scan') {
         return;
       }
       const { content } = data;
