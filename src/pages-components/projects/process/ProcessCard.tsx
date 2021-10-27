@@ -65,7 +65,6 @@ function ProcessCard({
             component: Component,
             modalProps: {
               item,
-              siteId,
               onOk: (item: ProcessSnapshotItem) => {
                 onDelete(item);
               },

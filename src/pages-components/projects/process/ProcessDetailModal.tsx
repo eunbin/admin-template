@@ -15,16 +15,18 @@ import { css } from '@emotion/react';
 import { useMutation, useQuery } from 'react-query';
 import API from 'api';
 import { ProcessMemoRequest, ProcessSnapshotItem } from 'types/process';
+import { useAppDataState } from 'contexts/AppDataProvider';
 
 interface Props {
-  siteId: number;
   item: ProcessSnapshotItem;
   visible: boolean;
   onOk: (values: ProcessSnapshotItem) => void;
   onClose: () => void;
 }
 
-function ProcessDetailModal({ siteId, item, visible, onOk, onClose }: Props) {
+function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
+  const { siteId, user } = useAppDataState();
+
   const {
     data: history,
     isLoading,
@@ -98,7 +100,7 @@ function ProcessDetailModal({ siteId, item, visible, onOk, onClose }: Props) {
       site_id: siteId,
       item_uuid: item.id,
       process_id: item.process_id,
-      user_id: 1, // TODO: userId
+      user_id: user.id,
       comment: values.memo,
     });
   };

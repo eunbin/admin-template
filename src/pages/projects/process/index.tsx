@@ -36,12 +36,13 @@ function ProcessPage({ cookies }: Props) {
   const { closeModal } = useModal();
   const { showNotification } = useNotification();
 
-  const { siteId, clientId } = useAppDataState();
+  const { siteId, clientId, user } = useAppDataState();
   const dispatch = useAppDataDispatch();
 
   useEffect(() => {
     dispatch({ type: 'SET_SITE_ID', siteId: 1 });
     dispatch({ type: 'SET_CLIENT_ID', clientId: '1' });
+    dispatch({ type: 'SET_USER', user: { id: 1 } });
   }, [dispatch]);
 
   const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
@@ -82,7 +83,7 @@ function ProcessPage({ cookies }: Props) {
         process_id: item.process_id,
         item_id: item.id,
         site_id: siteId,
-        user_id: 1, // TODO: userId
+        user_id: user.id,
       });
     },
     {
@@ -107,8 +108,8 @@ function ProcessPage({ cookies }: Props) {
       return API.socket.socket.closeProcess({
         process_id: item.process_id,
         item_id: item.id,
-        site_id: siteId, // TODO
-        user_id: 1, // TODO: userId
+        site_id: siteId,
+        user_id: user.id,
       });
     },
     {
