@@ -1,4 +1,4 @@
-import { BoardProps } from 'types/kanban';
+import { BoardColumn, BoardProps } from 'types/kanban';
 import {
   ProcessBoardCardItem,
   ProcessRealtimeItem,
@@ -13,7 +13,7 @@ interface SortOption {
 export const sortColumns = (
   board: BoardProps<ProcessBoardCardItem>,
   sortOption: SortOption
-): any => {
+): BoardColumn<ProcessBoardCardItem>[] => {
   const { sortField, isAsc } = sortOption;
   return board.columns.map((column) => {
     const sorted = column.cards.sort((a, b) =>
@@ -31,120 +31,134 @@ export const addCardBySortOption = async (
   columnId: number,
   process: ProcessRealtimeItem,
   sortOption: SortOption
-): Promise<BoardProps<ProcessBoardCardItem>> => {
+): Promise<BoardProps<ProcessBoardCardItem> | null> => {
   const newBoard = await addCard(board, columnId, process);
+  if (!newBoard) {
+    return null;
+  }
   const sortedColumns = sortColumns(newBoard, sortOption);
   return {
     columns: sortedColumns,
   };
 };
 
-export const addCard = (
+export const addCard = async (
   board: BoardProps<ProcessBoardCardItem>,
   columnId: number,
   process: ProcessRealtimeItem
-): Promise<BoardProps<ProcessBoardCardItem>> => {
-  return new Promise((resolve, reject) => {
-    const inColumn = board.columns.find((column) => column.id === columnId);
+): Promise<BoardProps<ProcessBoardCardItem> | null> => {
+  const inColumn = board.columns.find((column) => column.id === columnId);
 
-    if (!inColumn) {
-      reject();
-      return;
-    }
+  if (!inColumn) {
+    return null;
+  }
 
-    import('@lourenci/react-kanban').then(({ addCard }) => {
-      const newBoard = addCard(
-        board,
-        inColumn,
-        {
-          ...process,
-          id: process.item_id,
+  const { addCard } = await import('@lourenci/react-kanban');
+
+  const newBoard = addCard(
+    board,
+    inColumn,
+    {
+      ...process,
+      id: process.item_id,
+      initialBlink: true,
+    },
+    { on: 'top' }
+  );
+  return newBoard;
+};
+
+export const moveCardBySortOption = async (
+  board: BoardProps<ProcessBoardCardItem>,
+  columnId: number,
+  cardId: string,
+  sortOption: SortOption
+): Promise<BoardProps<ProcessBoardCardItem> | null> => {
+  const newBoard = await moveCard(board, columnId, cardId);
+  if (!newBoard) {
+    return null;
+  }
+  const sortedColumns = sortColumns(newBoard, sortOption);
+  return {
+    columns: sortedColumns,
+  };
+};
+
+export const moveCard = async (
+  board: BoardProps<ProcessBoardCardItem>,
+  columnId: number,
+  cardId: string
+): Promise<BoardProps<ProcessBoardCardItem> | null> => {
+  const { columns } = board;
+
+  let position: {
+    fromPosition: number;
+    fromColumnId: number;
+    toPosition: number;
+    toColumnId: number;
+  } | null = null;
+
+  columns.forEach((column, columnIndex) => {
+    column.cards.forEach((card, cardIndex) => {
+      if (card.id === cardId) {
+        position = {
+          fromPosition: cardIndex,
+          fromColumnId: columnIndex + 1,
+          toPosition: 0,
+          toColumnId: columnId,
+        };
+      }
+    });
+  });
+
+  const { moveCard } = await import('@lourenci/react-kanban');
+
+  if (!position) {
+    return null;
+  }
+
+  const { toColumnId, fromColumnId, fromPosition, toPosition } = position;
+
+  const newBoard = moveCard(
+    {
+      columns: board.columns.map((column) => ({
+        ...column,
+        cards: column.cards.map((card) => ({
+          ...card,
+          // XXX: 이동시킬 카드에만 적용
           initialBlink: true,
-        },
-        { on: 'top' }
-      );
-      resolve(newBoard);
-    });
-  });
+        })),
+      })),
+    },
+    {
+      fromPosition,
+      fromColumnId,
+    },
+    {
+      toPosition,
+      toColumnId,
+    }
+  );
+
+  return newBoard;
 };
 
-export const moveCard = (
+export const removeCard = async (
   board: BoardProps<ProcessBoardCardItem>,
   columnId: number,
   cardId: string
-): Promise<BoardProps<ProcessBoardCardItem>> => {
-  return new Promise((resolve, reject) => {
-    const { columns } = board;
+): Promise<BoardProps<ProcessBoardCardItem> | null> => {
+  const { columns } = board;
 
-    let position: {
-      fromPosition: number;
-      fromColumnId: number;
-      toPosition: number;
-      toColumnId: number;
-    } | null = null;
+  const targetColumn = columns.find((column) => column.id === columnId);
+  const targetCard = targetColumn?.cards.find((card) => card.id === cardId);
 
-    columns.forEach((column, columnIndex) => {
-      column.cards.forEach((card, cardIndex) => {
-        if (card.id === cardId) {
-          position = {
-            fromPosition: cardIndex,
-            fromColumnId: columnIndex + 1,
-            toPosition: 0,
-            toColumnId: columnId,
-          };
-        }
-      });
-    });
+  const { removeCard } = await import('@lourenci/react-kanban');
 
-    import('@lourenci/react-kanban').then(({ moveCard }) => {
-      if (!position) {
-        reject();
-        return;
-      }
-
-      const { toColumnId, fromColumnId, fromPosition, toPosition } = position;
-
-      const newBoard = moveCard(
-        {
-          columns: board.columns.map((column) => ({
-            ...column,
-            cards: column.cards.map((card) => ({
-              ...card,
-              // XXX: 이동시킬 카드에만 적용
-              initialBlink: true,
-            })),
-          })),
-        },
-        {
-          fromPosition,
-          fromColumnId,
-        },
-        {
-          toPosition,
-          toColumnId,
-        }
-      );
-      resolve(newBoard);
-    });
-  });
-};
-
-export const removeCard = (
-  board: BoardProps<ProcessBoardCardItem>,
-  columnId: number,
-  cardId: string
-): Promise<BoardProps<ProcessBoardCardItem>> => {
-  return new Promise((resolve, reject) => {
-    const { columns } = board;
-
-    const targetColumn = columns.find((column) => column.id === columnId);
-    const targetCard = targetColumn?.cards.find((card) => card.id === cardId);
-
-    import('@lourenci/react-kanban').then(({ removeCard }) => {
-      if (targetColumn && targetCard) {
-        const newBoard = removeCard(board, targetColumn, targetCard);
-        resolve(newBoard);
-      }
-    });
-  });
+  if (targetColumn && targetCard) {
+    const newBoard = removeCard(board, targetColumn, targetCard);
+    return newBoard;
+  } else {
+    return null;
+  }
 };

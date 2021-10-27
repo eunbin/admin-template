@@ -20,6 +20,10 @@ const useWebSocket = (
   const socket = useRef<any>(null);
   const [message, setMessage] = useState<string>('');
 
+  useEffect(() => {
+    onMessage?.(message);
+  }, [message]);
+
   const connect = () => {
     socket.current = new WebSocket(
       `${appConfig.socketServer.url}/socket/ws/${siteId}/${clientId}/`
@@ -49,7 +53,6 @@ const useWebSocket = (
     socket.current.onmessage = (event: any) => {
       const message = event.data as string;
       setMessage(message);
-      onMessage?.(message);
     };
   };
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import API from 'api';
 import {
@@ -16,7 +16,7 @@ import ProcessBoardToolbar, {
 import ProcessBoard from 'pages-components/projects/process/ProcessBoard';
 import {
   addCardBySortOption,
-  moveCard,
+  moveCardBySortOption,
   removeCard,
   sortColumns,
 } from 'utils/kanban';
@@ -26,7 +26,7 @@ import { GetServerSideProps } from 'next';
 import nookies from 'nookies';
 import { useModal } from 'contexts/ModalProvider';
 import useNotification from 'hooks/useNotification';
-import { useAppDataDispatch, useAppDataState } from 'contexts/AppDataProvider';
+import { useAppDataState } from 'contexts/AppDataProvider';
 import { isJsonString } from 'utils/json';
 
 interface Props {
@@ -123,7 +123,7 @@ function ProcessPage({ cookies }: Props) {
     }
   );
 
-  const { message } = useWebSocket(siteId, clientId, {
+  useWebSocket(siteId, clientId, {
     enabled: !!siteId,
     visibilityChange: true,
     onConnect: () => {
@@ -138,22 +138,49 @@ function ProcessPage({ cookies }: Props) {
         return;
       }
       const { content } = data;
+
+      const columnId = content.process_id;
+      const cardId = content.item_id;
+
+      const { columns } = board;
+      if (!columns || columns.length < 1) {
+        return;
+      }
+
       switch (content.type) {
         case 'New':
-          setBoard(
-            await addCardBySortOption(board, content.process_id, content, {
+          const addedBoard = await addCardBySortOption(
+            board,
+            columnId,
+            content,
+            {
               sortField,
               isAsc,
-            })
+            }
           );
+          if (addedBoard) {
+            setBoard(addedBoard);
+          }
           break;
         case 'Update':
-          setBoard(await moveCard(board, content.process_id, content.item_id));
+          const updatedBoard = await moveCardBySortOption(
+            board,
+            columnId,
+            cardId,
+            {
+              sortField,
+              isAsc,
+            }
+          );
+          if (updatedBoard) {
+            setBoard(updatedBoard);
+          }
           break;
         case 'Delete':
-          setBoard(
-            await removeCard(board, content.process_id, content.item_id)
-          );
+          const removedBoard = await removeCard(board, columnId, cardId);
+          if (removedBoard) {
+            setBoard(removedBoard);
+          }
           break;
         default:
           break;
@@ -188,85 +215,6 @@ function ProcessPage({ cookies }: Props) {
   return (
     <PageLayout>
       <>
-        <Button
-          onClick={async () => {
-            const process: ProcessRealtime = {
-              type: 'Scan',
-              content: {
-                type: 'New',
-                site_id: 1,
-                process_id: 1,
-                item_id: '9999',
-                item_name: 'uuid 009999',
-                client_name: '고객사 2',
-                patient_name: '홍길동 9999',
-                client_note: '고객 요청사항 9999',
-                req_time: '2021-10-16 09:31:01',
-                start_time: '2021-10-22 12:49:25',
-                deadline: '44507',
-              },
-              valid_until: '2021-10-23 12:49:24.626511',
-            };
-            setBoard(
-              await addCardBySortOption(board, 2, process.content, {
-                sortField,
-                isAsc,
-              })
-            );
-          }}
-        >
-          add
-        </Button>
-        <Button
-          onClick={async () => {
-            const process: ProcessRealtime = {
-              type: 'Scan',
-              content: {
-                type: 'Update',
-                site_id: 1,
-                process_id: 3,
-                item_id: '9999',
-                start_time: '2021-10-22 12:49:24.925013',
-              },
-              valid_until: '2021-10-23 12:49:24.939781',
-            };
-            setBoard(
-              await moveCard(
-                board,
-                process.content.process_id,
-                process.content.item_id
-              )
-            );
-          }}
-        >
-          update
-        </Button>
-        <Button
-          onClick={async () => {
-            const process: ProcessRealtime = {
-              type: 'Scan',
-              content: {
-                type: 'Delete',
-                site_id: 1,
-                process_id: 3,
-                item_id: '9999',
-                start_time: null,
-              },
-              valid_until: '2021-10-23 12:49:19.581914',
-            };
-            setBoard(
-              await removeCard(
-                board,
-                process.content.process_id,
-                process.content.item_id
-              )
-            );
-          }}
-        >
-          remove
-        </Button>
-        <Space />
-        <Button>Start Test</Button>
         <ProcessBoardToolbar
           isMaxHeight={isMaxHeight}
           sortField={sortField}
