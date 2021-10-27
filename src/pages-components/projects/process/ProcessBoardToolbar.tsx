@@ -1,30 +1,24 @@
 import { Col, Radio, Row, Switch, Typography } from 'antd';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { RadioChangeEvent } from 'antd/lib/radio/interface';
-import { ProcessSnapshotItem } from 'types/process';
+
+export type SortFieldType = 'client_name' | 'patient_name' | 'deadline';
 
 interface Props {
-  initialIsMaxHeight: boolean;
-  initialSortField: string;
-  initialIsAsc: boolean;
+  isMaxHeight: boolean;
+  sortField: SortFieldType;
+  isAsc: boolean;
   onCardHeightChange: (isMaxHeight: boolean) => void;
-  onSortChange: (field: keyof ProcessSnapshotItem, isAsc: boolean) => void;
+  onSortChange: (field: SortFieldType, isAsc: boolean) => void;
 }
 
-type SortFieldType = 'client_name' | 'patient_name' | 'deadline';
-
 function ProcessBoardToolbar({
-  initialIsMaxHeight,
-  initialSortField,
-  initialIsAsc,
+  isMaxHeight,
+  sortField,
+  isAsc,
   onCardHeightChange,
   onSortChange,
 }: Props) {
-  const [sortField, setSortField] = useState<SortFieldType>(
-    initialSortField as SortFieldType
-  );
-  const [isAsc, setIsAsc] = useState<boolean>(initialIsAsc);
-
   const handleMaxHeightChange = useCallback(
     (checked: boolean) => {
       onCardHeightChange(checked);
@@ -35,7 +29,6 @@ function ProcessBoardToolbar({
   const handleSortChange = useCallback(
     (e: RadioChangeEvent) => {
       const value = e.target.value;
-      setSortField(value);
       onSortChange(value, isAsc);
     },
     [isAsc, onSortChange]
@@ -43,7 +36,6 @@ function ProcessBoardToolbar({
 
   const handleIsAscChange = useCallback(
     (checked: boolean) => {
-      setIsAsc(checked);
       onSortChange(sortField, checked);
     },
     [onSortChange, sortField]
@@ -60,7 +52,7 @@ function ProcessBoardToolbar({
             <Switch
               checkedChildren="최대화"
               unCheckedChildren="최소화"
-              defaultChecked={initialIsMaxHeight}
+              defaultChecked={isMaxHeight}
               onChange={handleMaxHeightChange}
             />
           </Col>

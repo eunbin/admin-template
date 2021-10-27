@@ -5,11 +5,16 @@ import {
   ProcessSnapshotItem,
 } from 'types/process';
 
+interface SortOption {
+  field: keyof ProcessSnapshotItem;
+  isAsc: boolean;
+}
+
 export const sortColumns = (
   board: BoardProps<ProcessBoardCardItem>,
-  field: keyof ProcessSnapshotItem,
-  isAsc: boolean
+  sortOption: SortOption
 ): any => {
+  const { field, isAsc } = sortOption;
   return board.columns.map((column) => {
     const sorted = column.cards.sort((a, b) =>
       a[field].toString().localeCompare(b[field].toString())
@@ -19,6 +24,19 @@ export const sortColumns = (
       cards: isAsc ? sorted : sorted.reverse(),
     };
   });
+};
+
+export const addCardBySortOption = async (
+  board: BoardProps<ProcessBoardCardItem>,
+  columnId: number,
+  process: ProcessRealtimeItem,
+  sortOption: SortOption
+): Promise<BoardProps<ProcessBoardCardItem>> => {
+  const newBoard = await addCard(board, columnId, process);
+  const sortedColumns = sortColumns(newBoard, sortOption);
+  return {
+    columns: sortedColumns,
+  };
 };
 
 export const addCard = (

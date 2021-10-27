@@ -10,10 +10,17 @@ import {
 import { BoardProps } from 'types/kanban';
 import useWebSocket from 'hooks/useWebSocket';
 import PageLayout from 'layouts/PageLayout';
-import ProcessBoardToolbar from 'pages-components/projects/process/ProcessBoardToolbar';
+import ProcessBoardToolbar, {
+  SortFieldType,
+} from 'pages-components/projects/process/ProcessBoardToolbar';
 import ProcessBoard from 'pages-components/projects/process/ProcessBoard';
-import { addCard, moveCard, removeCard, sortColumns } from 'utils/kanban';
-import { Button } from 'antd';
+import {
+  addCardBySortOption,
+  moveCard,
+  removeCard,
+  sortColumns,
+} from 'utils/kanban';
+import { Button, Space } from 'antd';
 import { setCookie } from 'utils/client-cookie';
 import { GetServerSideProps } from 'next';
 import nookies from 'nookies';
@@ -40,6 +47,10 @@ function ProcessPage({ cookies }: Props) {
   const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
     columns: [],
   });
+  const [sortField, setSortField] = useState<SortFieldType>(
+    cookies['sortField']
+  );
+  const [isAsc, setIsAsc] = useState<boolean>(cookies['sortIsAsc'] === 'true');
 
   const { refetch } = useQuery(
     'processSnapshot',
@@ -134,7 +145,12 @@ function ProcessPage({ cookies }: Props) {
       const { content } = data;
       switch (content.type) {
         case 'New':
-          setBoard(await addCard(board, content.process_id, content));
+          setBoard(
+            await addCardBySortOption(board, content.process_id, content, {
+              field: 'deadline',
+              isAsc: false,
+            })
+          );
           break;
         case 'Update':
           setBoard(await moveCard(board, content.process_id, content.item_id));
@@ -157,13 +173,16 @@ function ProcessPage({ cookies }: Props) {
   }, []);
 
   const handleSortChange = useCallback(
-    (field: keyof ProcessSnapshotItem, isAsc: boolean) => {
-      const newBoard: BoardProps<ProcessBoardCardItem> = {
-        columns: sortColumns(board, field, isAsc),
-      };
-      setBoard(newBoard);
+    (field: SortFieldType, isAsc: boolean) => {
+      setSortField(field);
+      setIsAsc(isAsc);
       setCookie('sortField', field);
       setCookie('sortIsAsc', isAsc);
+
+      const newBoard: BoardProps<ProcessBoardCardItem> = {
+        columns: sortColumns(board, { field, isAsc }),
+      };
+      setBoard(newBoard);
     },
     [board]
   );
@@ -190,7 +209,12 @@ function ProcessPage({ cookies }: Props) {
               },
               valid_until: '2021-10-23 12:49:24.626511',
             };
-            setBoard(await addCard(board, 2, process.content));
+            setBoard(
+              await addCardBySortOption(board, 2, process.content, {
+                field: 'deadline',
+                isAsc: false,
+              })
+            );
           }}
         >
           add
@@ -243,10 +267,12 @@ function ProcessPage({ cookies }: Props) {
         >
           remove
         </Button>
+        <Space />
+        <Button>Start Test</Button>
         <ProcessBoardToolbar
-          initialIsMaxHeight={isMaxHeight}
-          initialSortField={cookies['sortField']}
-          initialIsAsc={cookies['sortIsAsc'] === 'true'}
+          isMaxHeight={isMaxHeight}
+          sortField={sortField}
+          isAsc={isAsc}
           onCardHeightChange={handleCardHeightChange}
           onSortChange={handleSortChange}
         />
