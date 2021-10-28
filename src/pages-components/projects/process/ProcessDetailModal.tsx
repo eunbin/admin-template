@@ -16,6 +16,12 @@ import { useMutation, useQuery } from 'react-query';
 import API from 'api';
 import { ProcessMemoRequest, ProcessSnapshotItem } from 'types/process';
 import { useAppDataState } from 'contexts/AppDataProvider';
+import {
+  DateFormat,
+  getDDayString,
+  getDiffDay,
+  getLocaleDDayString,
+} from 'utils/date';
 
 interface Props {
   item: ProcessSnapshotItem;
@@ -48,12 +54,6 @@ function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
 
   const [form] = Form.useForm();
 
-  const diff = useMemo(
-    () => dayjs(new Date()).diff(dayjs(item.deadline), 'days'),
-    [item.deadline]
-  );
-
-  const requestTime = dayjs(item.req_time);
   const startTime = dayjs(item.start_time);
   const deadline = dayjs(item.deadline);
 
@@ -62,19 +62,25 @@ function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
       title: '공정',
       dataIndex: 'process_name',
       key: 'process_name',
-      width: 150,
+      width: 100,
     },
     {
       title: '시작시간',
       dataIndex: 'start_time',
       key: 'start_time',
-      width: 150,
+      width: 180,
+      render: (value: string) => (
+        <span>{dayjs(value).format(DateFormat.timestamp)}</span>
+      ),
     },
     {
       title: '종료시간',
       dataIndex: 'end_time',
       key: 'end_time',
-      width: 150,
+      width: 180,
+      render: (value: string) => (
+        <span>{value && dayjs(value).format(DateFormat.timestamp)}</span>
+      ),
     },
     {
       title: '소요시간',
@@ -86,7 +92,7 @@ function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
       title: '작업자',
       dataIndex: 'user_name',
       key: 'user_name',
-      width: 100,
+      width: 120,
     },
     {
       title: '메모내용',
@@ -134,25 +140,26 @@ function ProcessDetailModal({ item, visible, onOk, onClose }: Props) {
       `}
     >
       <>
-        <Descriptions bordered layout="horizontal" column={1}>
+        <Descriptions
+          bordered
+          layout="horizontal"
+          column={1}
+          labelStyle={{ width: 280 }}
+        >
           <Descriptions.Item label="작업 접수시간">
             <Row>
               <Col span={12}>
-                {requestTime.format('YYYY.MM.DD (ddd) HH:mm')}
+                {dayjs(item.req_time).format(DateFormat.dateTime)}
               </Col>
-              <Col span={12}>
-                접수 {dayjs(new Date()).diff(dayjs(requestTime), 'days')}일 경과
-              </Col>
+              <Col span={12}>접수 {getLocaleDDayString(item.req_time)}</Col>
             </Row>
           </Descriptions.Item>
           <Descriptions.Item label="마감시간">
             <Row>
               <Col span={12}>
-                {dayjs(item.deadline).format('YYYY.MM.DD (ddd)')}
+                {dayjs(item.deadline).format(DateFormat.dateDay)}
               </Col>
-              <Col span={12}>
-                마감 {diff}일 {diff === 0 ? '전' : '경과'}
-              </Col>
+              <Col span={12}>마감 {getLocaleDDayString(item.deadline)}</Col>
             </Row>
           </Descriptions.Item>
           <Descriptions.Item label="고객 요청사항">

@@ -2,7 +2,7 @@ import { Col, Radio, Row, Switch, Typography } from 'antd';
 import React, { useCallback } from 'react';
 import { RadioChangeEvent } from 'antd/lib/radio/interface';
 
-export type SortFieldType = 'client_name' | 'patient_name' | 'deadline';
+export type SortFieldType = 'client_name' | 'deadline';
 
 interface Props {
   isMaxHeight: boolean;
@@ -66,7 +66,6 @@ function ProcessBoardToolbar({
           </Col>
           <Col>
             <Radio.Group onChange={handleSortChange} value={sortField}>
-              <Radio value={'patient_name'}>환자명</Radio>
               <Radio value={'client_name'}>고객명</Radio>
               <Radio value={'deadline'}>마감일</Radio>
             </Radio.Group>

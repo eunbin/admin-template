@@ -7,6 +7,7 @@ import { useModal } from 'contexts/ModalProvider';
 import useConfirm from 'hooks/useConfirm';
 import { ProcessSnapshotItem } from 'types/process';
 import { useAppDataState } from 'contexts/AppDataProvider';
+import { DateFormat, getDDayString } from 'utils/date';
 
 const CardRow = styled.p(css`
   padding: 0 10px;
@@ -51,11 +52,6 @@ function ProcessCard({
         setClassName('');
       }, BLINK_DURATION);
   }, [initialBlink]);
-
-  const diff = useMemo(
-    () => dayjs(new Date()).diff(dayjs(deadline), 'days'),
-    [deadline]
-  );
 
   const handleDetailClick = useCallback(
     (item: ProcessSnapshotItem) => () => {
@@ -124,16 +120,16 @@ function ProcessCard({
           <CardRow>{client_note}</CardRow>
           <Divider />
           <CardRow>
-            작업 접수시간 : {dayjs(req_time).format('YYYY.MM.DD HH:mm:ss')}
+            작업 접수시간 : {dayjs(req_time).format(DateFormat.timestamp)}
           </CardRow>
           <Divider />
           <CardRow>
-            공정 시작시간 : {dayjs(start_time).format('YYYY.MM.DD HH:mm:ss')}
+            공정 시작시간 : {dayjs(start_time).format(DateFormat.timestamp)}
           </CardRow>
           <Divider />
           <CardRow>
-            마감시간 : {dayjs(deadline).format('YYYY.MM.DD')}
-            {` (D${diff > 0 ? '+' : diff === 0 ? '-' : ''}${diff})`}
+            마감시간 : {dayjs(deadline).format(DateFormat.date)}{' '}
+            {getDDayString(deadline)}
           </CardRow>
         </>
       )}
