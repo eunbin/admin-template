@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from 'react-query';
 import API from 'api';
 import {
@@ -21,9 +21,9 @@ import {
   sortColumns,
 } from 'utils/kanban';
 import { Button, Space } from 'antd';
-import { setCookie } from 'utils/client-cookie';
+import { getCookie, setCookie } from 'utils/client-cookie';
 import { GetServerSideProps } from 'next';
-import nookies from 'nookies';
+import nookies, { parseCookies } from 'nookies';
 import { useModal } from 'contexts/ModalProvider';
 import useNotification from 'hooks/useNotification';
 import { useAppDataState } from 'contexts/AppDataProvider';
@@ -34,18 +34,36 @@ interface Props {
 }
 
 function ProcessPage({ cookies }: Props) {
-  const { closeModal } = useModal();
   const { showNotification } = useNotification();
+  const { closeModal } = useModal();
 
   const { siteId, clientId, user } = useAppDataState();
 
   const [board, setBoard] = useState<BoardProps<ProcessBoardCardItem>>({
     columns: [],
   });
+
+  const [isMaxHeight, setIsMaxHeight] = useState<boolean>(
+    cookies['isMaxHeight']
+      ? cookies['isMaxHeight'] === 'true'
+      : getCookie('isMaxHeight')
+      ? getCookie('isMaxHeight') === 'true'
+      : true
+  );
   const [sortField, setSortField] = useState<SortFieldType>(
     cookies['sortField']
+      ? cookies['sortField']
+      : getCookie('sortField')
+      ? getCookie('sortField')
+      : 'client_name'
   );
-  const [isAsc, setIsAsc] = useState<boolean>(cookies['sortIsAsc'] === 'true');
+  const [isAsc, setIsAsc] = useState<boolean>(
+    cookies['sortIsAsc']
+      ? cookies['sortIsAsc'] === 'true'
+      : getCookie('sortIsAsc')
+      ? getCookie('sortIsAsc') === 'true'
+      : true
+  );
 
   const { refetch } = useQuery(
     'processSnapshot',
@@ -187,10 +205,6 @@ function ProcessPage({ cookies }: Props) {
       }
     },
   });
-
-  const [isMaxHeight, setIsMaxHeight] = useState<boolean>(
-    cookies['isMaxHeight'] === 'true'
-  );
 
   const handleCardHeightChange = useCallback((isMaxHeight: boolean) => {
     setIsMaxHeight(isMaxHeight);
