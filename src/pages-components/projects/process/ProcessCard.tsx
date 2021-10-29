@@ -7,11 +7,19 @@ import { useModal } from 'contexts/ModalProvider';
 import useConfirm from 'hooks/useConfirm';
 import { ProcessSnapshotItem } from 'types/process';
 import { useAppDataState } from 'contexts/AppDataProvider';
-import { DateFormat, getDDayString } from 'utils/date';
+import { DateFormat, getDDayString, getDiffDay } from 'utils/date';
 
 const CardRow = styled.p(css`
   padding: 0 10px;
 `);
+
+const cardStyle = (color: string) => css`
+  background-color: ${color};
+  margin-bottom: 10px;
+  .ant-divider-horizontal {
+    margin: 0 0 10px 0;
+  }
+`;
 
 const BLINK_DURATION = 5000;
 
@@ -52,6 +60,26 @@ function ProcessCard({
         setClassName('');
       }, BLINK_DURATION);
   }, [initialBlink]);
+
+  const backgroundColor = useMemo(() => {
+    const dDay = getDiffDay(deadline);
+    const limit = -5;
+    const alpha =
+      dDay > 0
+        ? 0.8
+        : dDay === 0
+        ? 0.6
+        : dDay >= -2
+        ? 0.4
+        : dDay >= limit
+        ? 0.2
+        : 1;
+
+    const red = dDay >= limit ? 255 : 255;
+    const green = dDay >= limit ? 0 : 255;
+    const blue = dDay >= limit ? 0 : 255;
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+  }, [deadline]);
 
   const handleDetailClick = useCallback(
     (item: ProcessSnapshotItem) => () => {
@@ -106,12 +134,7 @@ function ProcessCard({
       className={className}
       headStyle={{ textAlign: 'center' }}
       bodyStyle={{ padding: 0, width: 300 }}
-      css={css`
-        margin-bottom: 10px;
-        .ant-divider-horizontal {
-          margin: 0 0 10px 0;
-        }
-      `}
+      css={cardStyle(backgroundColor)}
       hoverable
     >
       {fullContent && (
