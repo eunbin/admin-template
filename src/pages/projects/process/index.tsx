@@ -84,7 +84,10 @@ function ProcessPage({ cookies }: Props) {
               initialBlink: false,
             })) || [],
         };
-        setBoard(newBoard);
+
+        setBoard({
+          columns: sortColumns(newBoard, { sortField, isAsc }),
+        });
       },
     }
   );

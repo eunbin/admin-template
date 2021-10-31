@@ -16,8 +16,10 @@ export const sortColumns = (
 ): BoardColumn<ProcessBoardCardItem>[] => {
   const { sortField, isAsc } = sortOption;
   return board.columns.map((column) => {
-    const sorted = column.cards.sort((a, b) =>
-      a[sortField].toString().localeCompare(b[sortField].toString())
+    const sorted = column.cards.sort(
+      (a, b) =>
+        a[sortField].toString().localeCompare(b[sortField].toString()) ||
+        new Date(b['req_time']).getTime() - new Date(a['req_time']).getTime()
     );
     return {
       ...column,

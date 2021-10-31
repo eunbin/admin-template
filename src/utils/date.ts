@@ -8,14 +8,19 @@ export enum DateFormat {
 }
 
 export const getDiffDay = (date: string | Date) => {
-  return dayjs(new Date().setHours(0, 0, 0, 0)).diff(
-    dayjs(date)
-      .set('hour', 0)
-      .set('minute', 0)
-      .set('second', 0)
-      .set('millisecond', 0),
-    'day'
-  );
+  return dayjs()
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0)
+    .diff(
+      dayjs(date)
+        .set('hour', 0)
+        .set('minute', 0)
+        .set('second', 0)
+        .set('millisecond', 0),
+      'day'
+    );
 };
 
 export const getDDayString = (date: string | Date) => {

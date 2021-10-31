@@ -22,7 +22,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={queryClient}>
         <AppDataProvider
           initialValues={{
-            siteId: 1,
+            siteId: 2,
             clientId: '1',
             user: { id: 1 },
           }}
