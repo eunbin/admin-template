@@ -25,7 +25,7 @@ export const getDDayString = (date: string | Date) => {
     ? `(D-${Math.abs(diff)})`
     : diff === 0
     ? '(D-Day)'
-    : `(D+${diff}})`;
+    : `(D+${diff})`;
 };
 
 export const getLocaleDDayString = (date: string | Date) => {
